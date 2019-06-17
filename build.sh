@@ -1,3 +1,3 @@
 #!/bin/bash
-docker build -t khteh/database:mysql .
-docker push khteh/database:mysql
+docker build -t khteh/mysql .
+docker push khteh/mysql:latest
