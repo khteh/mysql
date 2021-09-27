@@ -72,7 +72,16 @@ docker_process_init_files() {
 					. "$f"
 				fi
 				;;
-			*.sql)    mysql_note "$0: running $f"; docker_process_sql < "$f"; echo ;;
+			*.sql)  # Added by KHTeh to initialize database with matching dump file name  
+                                file=${f##*/}
+                                file1=${file%.*}
+				mysql_note "Processing initdb file $file1..."
+	                        if [ -n "$MYSQL_DATABASE" -a "$MYSQL_DATABASE" == "${file1}" ]; then
+					mysql_note "$0: Initializing database $MYSQL_DATABASE with $f..."; docker_process_sql --database=$MYSQL_DATABASE < "$f";
+	                        elif [ -n "$MYSQL_DATABASE_1" -a "$MYSQL_DATABASE_1" == "${file1}" ]; then
+                                	mysql_note "$0: Initializing database $MYSQL_DATABASE_1 with $f..."; docker_process_sql --database=$MYSQL_DATABASE_1 < "$f";
+                                fi
+				;;
 			*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
 			*.sql.xz) mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql; echo ;;
 			*)        mysql_warn "$0: ignoring $f" ;;
