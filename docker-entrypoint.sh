@@ -80,6 +80,8 @@ docker_process_init_files() {
 					mysql_note "$0: Initializing database $MYSQL_DATABASE with $f..."; docker_process_sql --database=$MYSQL_DATABASE < "$f";
 	                        elif [ -n "$MYSQL_DATABASE_1" -a "$MYSQL_DATABASE_1" == "${file1}" ]; then
                                 	mysql_note "$0: Initializing database $MYSQL_DATABASE_1 with $f..."; docker_process_sql --database=$MYSQL_DATABASE_1 < "$f";
+	                        elif [ -n "$MYSQL_DATABASE_2" -a "$MYSQL_DATABASE_2" == "${file1}" ]; then
+                                	mysql_note "$0: Initializing database $MYSQL_DATABASE_2 with $f..."; docker_process_sql --database=$MYSQL_DATABASE_2 < "$f";
                                 fi
 				;;
 			*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
@@ -226,6 +228,7 @@ docker_setup_env() {
 	file_env 'MYSQL_ROOT_HOST' '%'
 	file_env 'MYSQL_DATABASE'
 	file_env 'MYSQL_DATABASE_1'
+	file_env 'MYSQL_DATABASE_2'
 	file_env 'MYSQL_USER'
 	file_env 'MYSQL_PASSWORD'
 	file_env 'MYSQL_ROOT_PASSWORD'
@@ -324,6 +327,10 @@ docker_setup_db() {
 		mysql_note "Creating database ${MYSQL_DATABASE_1}"
 		docker_process_sql --database=mysql <<<"CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE_1\` ;"
 	fi
+	if [ -n "$MYSQL_DATABASE_2" ]; then
+		mysql_note "Creating database ${MYSQL_DATABASE_2}"
+		docker_process_sql --database=mysql <<<"CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE_2\` ;"
+	fi
 
 	if [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
 		mysql_note "Creating user ${MYSQL_USER}"
@@ -336,6 +343,10 @@ docker_setup_db() {
 		if [ -n "$MYSQL_DATABASE_1" ]; then
 			mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE_1}"
 			docker_process_sql --database=mysql <<<"GRANT ALL ON \`${MYSQL_DATABASE_1//_/\\_}\`.* TO '$MYSQL_USER'@'%' ;"
+		fi
+		if [ -n "$MYSQL_DATABASE_2" ]; then
+			mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE_2}"
+			docker_process_sql --database=mysql <<<"GRANT ALL ON \`${MYSQL_DATABASE_2//_/\\_}\`.* TO '$MYSQL_USER'@'%' ;"
 		fi
 	fi
 }
